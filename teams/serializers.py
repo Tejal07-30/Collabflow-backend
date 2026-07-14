@@ -22,17 +22,21 @@ class TeamSerializer(serializers.ModelSerializer):
 
 
 class TeamMemberSerializer(serializers.ModelSerializer):
-    user = serializers.ReadOnlyField(source="user.email")
+    user = serializers.CharField(source="user.email", read_only=True)
 
     class Meta:
         model = TeamMember
         fields = [
             "id",
-            "team",
             "user",
             "role",
             "joined_at",
         ]
-        read_only_fields = [
-            "joined_at",
-        ]
+        
+class InviteMemberSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    role = serializers.ChoiceField(
+        choices=TeamMember.Role.choices,
+        default=TeamMember.Role.MEMBER,
+    )

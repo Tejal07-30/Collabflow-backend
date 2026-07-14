@@ -1,10 +1,24 @@
 from rest_framework.permissions import BasePermission
 
+from .models import Team, TeamMember
 
-class IsTeamOwner(BasePermission):
+
+class IsOwner(BasePermission):
     """
-    Allows access only to the team owner.
+    Allows only team owners to perform certain actions.
     """
 
     def has_object_permission(self, request, view, obj):
-        return obj.created_by == request.user
+        # DRF browsable API may pass a TeamMember instance while rendering
+        if isinstance(obj, TeamMember):
+            team = obj.team
+        elif isinstance(obj, Team):
+            team = obj
+        else:
+            return False
+
+        return TeamMember.objects.filter(
+            team=team,
+            user=request.user,
+            role=TeamMember.Role.OWNER,
+        ).exists()
