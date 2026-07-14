@@ -1,8 +1,10 @@
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from .models import Team
 from .serializers import TeamSerializer
+from .services import create_team
 
 
 class TeamViewSet(viewsets.ModelViewSet):
@@ -10,7 +12,23 @@ class TeamViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Team.objects.filter(created_by=self.request.user)
+        return Team.objects.filter(
+            members__user=self.request.user
+        ).distinct()
 
-    def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        team = create_team(
+            name=serializer.validated_data["name"],
+            description=serializer.validated_data.get("description", ""),
+            creator=request.user,
+        )
+
+        response_serializer = self.get_serializer(team)
+
+        return Response(
+            response_serializer.data,
+            status=status.HTTP_201_CREATED,
+        )
