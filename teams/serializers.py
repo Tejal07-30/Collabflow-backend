@@ -40,3 +40,7 @@ class InviteMemberSerializer(serializers.Serializer):
         choices=TeamMember.Role.choices,
         default=TeamMember.Role.MEMBER,
     )
+class UpdateRoleSerializer(serializers.Serializer):
+    role = serializers.ChoiceField(
+        choices=TeamMember.Role.choices
+    )

@@ -43,3 +43,24 @@ def invite_member(*, team, email, role):
     )
 
     return member
+def update_member_role(*, member, role):
+    """
+    Updates a team member's role.
+    """
+
+    if member.role == TeamMember.Role.OWNER:
+        raise ValueError("Owner role cannot be changed.")
+
+    member.role = role
+    member.save(update_fields=["role"])
+
+    return member
+def remove_team_member(*, member):
+    """
+    Removes a member from the team.
+    """
+
+    if member.role == TeamMember.Role.OWNER:
+        raise ValueError("Owner cannot be removed.")
+
+    member.delete()
